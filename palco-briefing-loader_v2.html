@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carregando...</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .loading-container {
+            text-align: center;
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 30px;
+            border: 4px solid #e1e5e9;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .loading-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .loading-subtitle {
+            font-size: 1rem;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .loading-dots {
+            display: inline-block;
+            width: 80px;
+            height: 20px;
+            position: relative;
+        }
+        
+        .loading-dots::before,
+        .loading-dots::after,
+        .loading-dots {
+            border-radius: 50%;
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            animation: loadingDots 1.4s infinite ease-in-out both;
+        }
+        
+        .loading-dots::before {
+            content: '';
+            position: absolute;
+            left: -16px;
+            animation-delay: -0.32s;
+        }
+        
+        .loading-dots::after {
+            content: '';
+            position: absolute;
+            left: 16px;
+            animation-delay: 0.32s;
+        }
+        
+        @keyframes loadingDots {
+            0%, 80%, 100% {
+                transform: scale(0);
+            }
+            40% {
+                transform: scale(1);
+            }
+        }
+        
+        .error-container {
+            display: none;
+            text-align: center;
+            background: white;
+            border-radius: 20px;
+            padding: 60px 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        
+        .error-icon {
+            font-size: 3rem;
+            color: #e74c3c;
+            margin-bottom: 20px;
+        }
+        
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .error-message {
+            color: #666;
+            margin-bottom: 30px;
+        }
+        
+        .retry-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .retry-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+        }
+        
+        .content-container {
+            display: none;
+            width: 100%;
+            height: 100vh;
+            overflow: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .loading-container,
+            .error-container {
+                margin: 10px;
+                padding: 40px 20px;
+            }
+            
+            .loading-title {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Loading State -->
+    <div id="loadingContainer" class="loading-container">
+        <div class="loading-spinner"></div>
+        <h1 class="loading-title">Carregando</h1>
+        <p class="loading-subtitle">Preparando seu conteúdo</p>
+        <div class="loading-dots"></div>
+    </div>
+    
+    <!-- Error State -->
+    <div id="errorContainer" class="error-container">
+        <div class="error-icon">⚠️</div>
+        <h1 class="error-title">Ops! Algo deu errado</h1>
+        <p class="error-message">Não foi possível carregar o conteúdo. Verifique sua conexão e tente novamente.</p>
+        <button class="retry-btn" onclick="loadContent()">Tentar Novamente</button>
+    </div>
+    
+    <!-- Content Container -->
+    <div id="contentContainer" class="content-container"></div>
+    
+    <script>
+        // Function to get URL parameter
+        function getUrlParameter(name) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(name);
+        }
+        
+        async function loadContent() {
+            const loadingContainer = document.getElementById('loadingContainer');
+            const errorContainer = document.getElementById('errorContainer');
+            const contentContainer = document.getElementById('contentContainer');
+            
+            // Show loading, hide error
+            loadingContainer.style.display = 'flex';
+            errorContainer.style.display = 'none';
+            contentContainer.style.display = 'none';
+            
+            try {
+                // Extract the ID from URL parameter
+                const id = getUrlParameter('id');
+                console.log('ID from URL:', id);
+                
+                // Prepare the payload
+                const payload = id ? { id: id } : {};
+                
+                console.log('Calling webhook with payload:', payload);
+                
+                const response = await fetch('https://n8n-hook.newexpo.com.br/webhook/89dc2c74-d210-460c-9b9d-65fb1797d289', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const htmlContent = await response.text();
+                console.log('Webhook response received');
+                
+                // Hide loading and display content
+                loadingContainer.style.display = 'none';
+                contentContainer.style.display = 'block';
+                contentContainer.innerHTML = htmlContent;
+                
+                // Execute any scripts in the loaded content
+                const scripts = contentContainer.getElementsByTagName('script');
+                for (let script of scripts) {
+                    const newScript = document.createElement('script');
+                    if (script.src) {
+                        newScript.src = script.src;
+                    } else {
+                        newScript.textContent = script.textContent;
+                    }
+                    document.head.appendChild(newScript);
+                    script.remove();
+                }
+                
+            } catch (error) {
+                console.error('Error loading content:', error);
+                
+                // Hide loading and show error
+                loadingContainer.style.display = 'none';
+                errorContainer.style.display = 'flex';
+            }
+        }
+        
+        // Auto-load content when page loads
+        document.addEventListener('DOMContentLoaded', loadContent);
+        
+        // Handle back/forward navigation
+        window.addEventListener('popstate', function(event) {
+            // Optional: handle browser navigation if needed
+        });
+    </script>
+</body>
+</html>
